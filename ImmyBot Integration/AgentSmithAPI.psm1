@@ -15,11 +15,46 @@ function Get-SmithOrgID {
 }
 
 function Get-SmithAgent {
-
+    try {
+        $headers = @{
+            'x-rewst-secret' = $IntegrationContext.SmithApiKey
+        }
+        $Agents = Invoke-RestMethod -Uri $IntegrationContext.SmithAgentWebhook -Method Get -Headers $headers
+        if ($Agents.Response) {
+            return $Agents.Response
+        } else {
+            Write-Error "Response was null."
+        }
+    } catch {
+        Write-Error "Error occurred while Getting Agents: $_"
+    }
 }
 
 function Invoke-SmithCommand {
+    param (
+        [Parameter(Mandatory=$true)]
+        [string]$agent,
+        [Parameter(Mandatory=$true)]
+        [string]$scriptCode
+    )
 
+    try {
+        $headers = @{
+            'x-rewst-secret' = $IntegrationContext.SmithApiKey
+        }
+        $body = @{
+            'agent' = $agent
+            'scriptCode' = $scriptCode
+        }
+        $Command = Invoke-RestMethod -Uri $IntegrationContext.SmithCommandWebhook -Method Post -Headers $headers -Body $body
+        if ($Command.Response) {
+            return $Command.Response
+        } else {
+            Write-Error "Response was null."
+        }
+    } catch {
+        Write-Error "Error occurred while Getting Agents: $_"
+    }
 }
 
 function Get-SmithAPIHealth {
